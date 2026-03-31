@@ -1,54 +1,105 @@
+"use client";
+import { useState } from 'react';
+
 export default function Home() {
+  const [loading, setLoading] = useState(false);
+  const [videoUrl, setVideoUrl] = useState("");
+  const [error, setError] = useState("");
+
+  const generateVideo = async (e: any) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    const scriptText = e.target.script.value;
+
+    // МАНАЙ API KEY ЭНД
+    const apiKey = "YjIzMTg3MDA4OUBnbWFpbC5jb20:o10Dtzr_3-9nUVeIdLTRl"; 
+
+    try {
+      // 1. Бичлэг хийх хүсэлт илгээх
+      const response = await fetch("https://api.d-id.com/talks", {
+        method: "POST",
+        headers: {
+          "Authorization": Basic ${apiKey},
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          script: {
+            type: "text",
+            input: scriptText,
+            provider: { type: "microsoft", voice_id: "mn-MN-BatchBold" }
+          },
+          source_url: "https://create-images-results.d-id.com/api_docs/assets/noelle.png",
+          config: { fluent: "false", pad_audio: "0" }
+        })
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) throw new Error(data.message || "API Алдаа");
+
+      // 2. Бичлэг бэлэн болохыг хүлээж шалгах (Polling)
+      const checkStatus = setInterval(async () => {
+        const getRes = await fetch(https://api.d-id.com/talks/${data.id}, {
+          headers: { "Authorization": Basic ${apiKey} }
+        });
+        const finalData = await getRes.json();
+        
+        if (finalData.status === "completed") {
+          setVideoUrl(finalData.result_url);
+          setLoading(false);
+          clearInterval(checkStatus);
+        } else if (finalData.status === "error") {
+          setError("Бичлэг хийхэд алдаа гарлаа.");
+          setLoading(false);
+          clearInterval(checkStatus);
+        }
+      }, 3000); // 3 секунд тутамд шалгана
+
+    } catch (err: any) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-white p-6 md:p-20 flex flex-col items-center">
-      <nav className="w-full max-w-4xl flex justify-between items-center mb-16">
-        <div className="text-2xl font-black italic tracking-tighter">AI.MODEL.MN</div>
-        <div className="text-[10px] font-bold bg-yellow-400 text-black px-3 py-1 rounded-full uppercase">Alpha Version</div>
-      </nav>
-
-      <div className="max-w-4xl w-full flex flex-col md:flex-row gap-12 items-center">
-        <div className="flex-1 space-y-6">
-          <h1 className="text-5xl md:text-7xl font-black leading-tight italic">
-            РЕКЛАМАНД <br /> <span className="text-yellow-400">МОДЕЛЬ</span> <br /> ХЭРЭГГҮЙ.
-          </h1>
-          <p className="text-gray-400 text-lg">
-            Барааныхаа зургийг оруулаад, текстээ бич. Манай AI модель 5 минутад таны өмнөөс яриад өгнө.
-          </p>
+    <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 font-sans">
+      <div className="max-w-md w-full bg-zinc-900 border border-zinc-800 p-10 rounded-[40px] shadow-2xl">
+        <div className="mb-8">
+          <h1 className="text-4xl font-black text-yellow-400 italic leading-none">AI MODEL</h1>
+          <p className="text-zinc-500 text-xs mt-2 uppercase tracking-[0.2em] font-bold">Automatic Video Agency</p>
         </div>
-
-        <div className="flex-1 w-full bg-[#111] p-8 rounded-[40px] border border-gray-800 shadow-2xl">
-          <div className="space-y-6">
-            <div>
-              <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-[2px] mb-2">1. Барааны зураг (Image)</label>
-              <input type="file" className="w-full bg-black border border-gray-800 p-3 rounded-2xl text-xs" />
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-[2px] mb-2">2. Рекламны текст (Script)</label>
-              <textarea 
-                rows={4} 
-                className="w-full bg-black border border-gray-800 p-4 rounded-2xl outline-none focus:border-yellow-400 text-sm transition"
-                placeholder="Сайн байна уу, энэ бол манай шинэ загвар..."
-              />
-            </div>
-
-            <div className="bg-gray-900/30 p-6 rounded-3xl border border-dashed border-gray-700 text-center">
-               <p className="text-[10px] font-bold text-gray-500 uppercase mb-4">Төлбөр төлөх (9,900₮)</p>
-               <div className="w-32 h-32 bg-white/10 mx-auto rounded-2xl flex items-center justify-center border border-white/5">
-                 <span className="text-[10px] text-gray-500 italic font-medium text-center px-4 leading-tight">Төлбөрийн QR энд байрлана</span>
-               </div>
-            </div>
-
-            <button className="w-full bg-yellow-400 text-black font-black py-5 rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition uppercase text-xs tracking-widest">
-              Бичлэг захиалах
-            </button>
+        
+        <form onSubmit={generateVideo} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-[10px] uppercase text-zinc-500 font-bold ml-2">Рекламны текст</label>
+            <textarea 
+              name="script" 
+              required
+              rows={4}
+              className="w-full bg-black border border-zinc-800 p-5 rounded-3xl outline-none focus:border-yellow-400 transition text-sm"
+              placeholder="Миний AI модельд хэлэх үгийг нь бичиж өгнө үү..."
+            />
           </div>
-        </div>
-      </div>
+          
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="w-full bg-yellow-400 text-black font-black py-5 rounded-3xl hover:scale-[1.02] active:scale-[0.98] transition uppercase text-sm tracking-tight disabled:bg-zinc-700"
+          >
+            {loading ? "AI бичлэг бэлдэж байна..." : "Бичлэг үүсгэх"}
+          </button>
+        </form>
 
-      <footer className="mt-20 text-gray-600 text-[9px] tracking-[4px] uppercase font-medium">
-        © 2026 AI.MODEL.MN - Next Gen Marketing
-      </footer>
+        {error && <p className="mt-4 text-red-500 text-xs text-center">{error}</p>}
+
+        {videoUrl && (
+          <div className="mt-10 space-y-4 animate-in fade-in zoom-in duration-700">
+            <video src={videoUrl} controls className="w-full rounded-3xl border-2 border-yellow-400 shadow-2xl" autoPlay />
+            <a href={videoUrl} download className="block text-center text-xs text-zinc-500 underline">Бичлэгийг татаж авах</a>
+          </div>
+        )}
+      </div>
     </main>
   );
 }
