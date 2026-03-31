@@ -6,14 +6,14 @@ export default function Home() {
   const [videoUrl, setVideoUrl] = useState("");
   const [error, setError] = useState("");
 
+  // ЧИНИЙ ӨГСӨН D-ID API KEY
+  const apiKey = "YjIzMTg3MDA4OUBnbWFpbC5jb20:o10Dtzr_3-9nUVeIdLTRl"; 
+
   const generateVideo = async (e: any) => {
     e.preventDefault();
     setLoading(true);
     setError("");
     const scriptText = e.target.script.value;
-
-    // МАНАЙ API KEY ЭНД
-    const apiKey = "YjIzMTg3MDA4OUBnbWFpbC5jb20:o10Dtzr_3-9nUVeIdLTRl"; 
 
     try {
       // 1. Бичлэг хийх хүсэлт илгээх
@@ -35,7 +35,6 @@ export default function Home() {
       });
 
       const data = await response.json();
-      
       if (!response.ok) throw new Error(data.message || "API Алдаа");
 
       // 2. Бичлэг бэлэн болохыг хүлээж шалгах (Polling)
@@ -54,10 +53,10 @@ export default function Home() {
           setLoading(false);
           clearInterval(checkStatus);
         }
-      }, 3000); // 3 секунд тутамд шалгана
+      }, 3000);
 
     } catch (err: any) {
-      setError(err.message);
+      setError("Кредит дууссан эсвэл алдаа гарлаа.");
       setLoading(false);
     }
   };
@@ -76,10 +75,26 @@ export default function Home() {
             <textarea 
               name="script" 
               required
-              rows={4}
+              rows={3}
               className="w-full bg-black border border-zinc-800 p-5 rounded-3xl outline-none focus:border-yellow-400 transition text-sm"
               placeholder="Миний AI модельд хэлэх үгийг нь бичиж өгнө үү..."
             />
+          </div>
+
+          {/* ТӨЛБӨРИЙН QR ХЭСЭГ */}
+          <div className="bg-white p-4 rounded-3xl flex flex-col items-center justify-center">
+             <p className="text-[10px] text-black font-black mb-2 uppercase">Төлбөр төлөх (9,900₮)</p>
+             <div className="w-32 h-32 bg-zinc-100 rounded-xl flex items-center justify-center overflow-hidden border border-zinc-200">
+                <img 
+                  src="/qr-code.png" 
+                  alt="QR Code" 
+                  className="w-full h-full object-contain"
+                  onError={(e: any) => {
+                    e.target.src = "https://via.placeholder.com/150?text=QR+Code+Missing";
+                  }}
+                />
+             </div>
+             <p className="text-[8px] text-zinc-400 mt-2 font-bold">Гүйлгээний утга: Өөрийн имэйл</p>
           </div>
           
           <button 
@@ -91,12 +106,12 @@ export default function Home() {
           </button>
         </form>
 
-        {error && <p className="mt-4 text-red-500 text-xs text-center">{error}</p>}
+        {error && <p className="mt-4 text-red-500 text-[10px] text-center font-bold">{error}</p>}
 
         {videoUrl && (
-          <div className="mt-10 space-y-4 animate-in fade-in zoom-in duration-700">
-            <video src={videoUrl} controls className="w-full rounded-3xl border-2 border-yellow-400 shadow-2xl" autoPlay />
-            <a href={videoUrl} download className="block text-center text-xs text-zinc-500 underline">Бичлэгийг татаж авах</a>
+          <div className="mt-10 space-y-4 animate-in fade-in zoom-in duration-700 text-center">
+            <video src={videoUrl} controls className="w-full rounded-3xl border-2 border-yellow-400 shadow-2xl shadow-yellow-400/20" autoPlay />
+            <a href={videoUrl} download className="inline-block text-[10px] text-zinc-500 underline font-bold uppercase tracking-widest">Бичлэгийг татаж авах</a>
           </div>
         )}
       </div>
